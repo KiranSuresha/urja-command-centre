@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Urja Command Centre
 
-## Getting Started
+This project uses Next.js 16, Prisma 6, and SQLite.
 
-First, run the development server:
+## Prisma 6 setup
+
+This repo now uses the Prisma 6 default client flow:
+
+- `@prisma/client` is generated into `node_modules`
+- the schema uses `provider = "prisma-client-js"`
+- the datasource URL is read directly from `env("DATABASE_URL")`
+- `src/lib/db.ts` imports `PrismaClient` from `@prisma/client`
+- local SQLite setup is bootstrapped from the checked-in SQL migration script
+
+## Step-by-step setup
+
+1. Install dependencies.
+
+```bash
+npm install
+```
+
+2. Make sure `.env` contains the local SQLite connection string.
+
+```env
+DATABASE_URL="file:./dev.db"
+```
+
+3. Generate the Prisma 6 client.
+
+```bash
+npm run prisma:generate
+```
+
+4. Apply the local SQLite schema bootstrap.
+
+```bash
+npm run prisma:migrate
+```
+
+5. Start the app.
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm run dev` already runs `db:setup` first, so steps 3 and 4 are automatic for normal local development.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Useful commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run db:setup
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:studio
+npm run dev
+```
 
-## Learn More
+## Troubleshooting
 
-To learn more about Next.js, take a look at the following resources:
+### `Cannot find module '@prisma/client'`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Run:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run prisma:generate
+```
 
-## Deploy on Vercel
+### `PrismaClientInitializationError`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Run:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run prisma:migrate
+```
+
+Then confirm:
+
+```env
+DATABASE_URL="file:./dev.db"
+```
+
+### Database location
+
+With `DATABASE_URL="file:./dev.db"`, the SQLite file lives at the project root as `dev.db`.
+
+## Prisma files
+
+- `prisma/schema.prisma`
+- `scripts/prisma-bootstrap.cjs`
+- `src/lib/db.ts`
+- `.env`
