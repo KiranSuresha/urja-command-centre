@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now())
+
+  assignedTasks  TaskAssignee[]
+  comments       Comment[]
+  huddleItems    HuddleItem[]
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  status      String        @default("active") // active | archived
+  color       String        @default("#6366f1")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  tasks       Task[]
+  huddleItems HuddleItem[]
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  projectId   String
+  title       String
+  description String?
+  status      String    @default("backlog") // backlog | in_progress | review | done
+  priority    String    @default("medium")  // low | medium | high | urgent
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignees   TaskAssignee[]
+  comments    Comment[]
+  huddleItems HuddleItem[]
+}
+
+model TaskAssignee {
+  id       String  @id @default(cuid())
+  taskId   String
+  userId   String
+  taskRole String? // e.g. "Lead", "Reviewer", "Support"
+  points   Int     @default(0)
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  parentId  String?
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task     Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentReplies")
+}
+
+model Huddle {
+  id        String   @id @default(cuid())
+  date      DateTime @unique
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items HuddleItem[]
+}
+
+model HuddleItem {
+  id          String  @id @default(cuid())
+  huddleId    String
+  projectId   String?
+  taskId      String?
+  assigneeId  String?
+  description String
+  done        Boolean @default(false)
+  order       Int     @default(0)
+
+  huddle   Huddle   @relation(fields: [huddleId], references: [id], onDelete: Cascade)
+  project  Project? @relation(fields: [projectId], references: [id])
+  task     Task?    @relation(fields: [taskId], references: [id])
+  assignee User?    @relation(fields: [assigneeId], references: [id])
+}
