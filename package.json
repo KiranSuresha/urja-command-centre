@@ -2,6 +2,9 @@
   "name": "urja-temp",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "predev": "prisma generate",
     "dev": "next dev",
