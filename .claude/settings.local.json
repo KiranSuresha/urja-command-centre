@@ -5,7 +5,11 @@
       "Bash(npx eslint:*)",
       "Bash(ls \"c:\\\\Users\\\\Kiran\\\\Downloads\\\\urja-command-centre\\\\prisma\\\\migrations\"\" 2>/dev/null || echo \"no migration_lock.toml \")",
       "Bash(find c:/Users/Kiran/Downloads/urja-command-centre/node_modules/prisma -name *.md -path */docs/*)",
-      "Bash(find c:/Users/Kiran/Downloads/urja-command-centre/node_modules -maxdepth 3 -name config.js -path */prisma/*)"
+      "Bash(find c:/Users/Kiran/Downloads/urja-command-centre/node_modules -maxdepth 3 -name config.js -path */prisma/*)",
+      "Bash(npm ls:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''version:'''', d[''''version'''']\\); print\\(''''peerDeps:'''', json.dumps\\(d.get\\(''''peerDependencies'''',{}\\), indent=2\\)\\)\")",
+      "Bash(node -e \"const d=require\\(''./node_modules/@prisma/adapter-pg/package.json''\\); console.log\\(''version:'', d.version\\); console.log\\(''peerDeps:'', JSON.stringify\\(d.peerDependencies||{}, null, 2\\)\\); console.log\\(''engines:'', JSON.stringify\\(d.engines||{}, null, 2\\)\\)\")",
+      "Bash(node -e \":*)"
     ]
   }
 }
