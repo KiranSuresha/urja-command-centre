@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
-      "Bash(ls \"c:\\\\Users\\\\Kiran\\\\Downloads\\\\urja-command-centre\\\\prisma\\\\migrations\"\" 2>/dev/null || echo \"no migration_lock.toml \")"
+      "Bash(ls \"c:\\\\Users\\\\Kiran\\\\Downloads\\\\urja-command-centre\\\\prisma\\\\migrations\"\" 2>/dev/null || echo \"no migration_lock.toml \")",
+      "Bash(find c:/Users/Kiran/Downloads/urja-command-centre/node_modules/prisma -name *.md -path */docs/*)",
+      "Bash(find c:/Users/Kiran/Downloads/urja-command-centre/node_modules -maxdepth 3 -name config.js -path */prisma/*)"
     ]
   }
 }
