@@ -3,14 +3,25 @@
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { ActionState, ProjectSchema, TaskSchema, CommentSchema } from '@/lib/validations'
 
-export async function createProject(formData: FormData) {
-  const name = formData.get('name') as string
-  const description = formData.get('description') as string
-  const color = formData.get('color') as string
+export async function createProject(state: ActionState, formData: FormData): Promise<ActionState> {
+  const parsed = ProjectSchema.safeParse({
+    name: formData.get('name'),
+    description: formData.get('description'),
+    color: formData.get('color'),
+  })
+
+  if (!parsed.success) {
+    return { errors: parsed.error.flatten().fieldErrors }
+  }
 
   const project = await db.project.create({
-    data: { name, description, color: color || '#6366f1' },
+    data: {
+      name: parsed.data.name,
+      description: parsed.data.description,
+      color: parsed.data.color || '#6366f1',
+    },
   })
   revalidatePath('/projects')
   redirect(`/projects/${project.id}`)
@@ -46,35 +57,63 @@ export async function createUser(formData: FormData) {
   revalidatePath('/team')
 }
 
-export async function createTask(formData: FormData) {
-  const projectId = formData.get('projectId') as string
+export async function createTask(state: ActionState, formData: FormData): Promise<ActionState> {
+  const parsed = TaskSchema.safeParse({
+    projectId: formData.get('projectId'),
+    title: formData.get('title'),
+    description: formData.get('description'),
+    status: formData.get('status'),
+    priority: formData.get('priority'),
+    dueDate: formData.get('dueDate'),
+  })
+
+  if (!parsed.success) {
+    return { errors: parsed.error.flatten().fieldErrors }
+  }
+
+  const { projectId, title, description, status, priority, dueDate } = parsed.data
   const task = await db.task.create({
     data: {
       projectId,
-      title: formData.get('title') as string,
-      description: formData.get('description') as string,
-      status: (formData.get('status') as string) || 'backlog',
-      priority: (formData.get('priority') as string) || 'medium',
-      dueDate: formData.get('dueDate') ? new Date(formData.get('dueDate') as string) : null,
+      title,
+      description,
+      status,
+      priority,
+      dueDate: dueDate ? new Date(dueDate) : null,
     },
   })
   revalidatePath(`/projects/${projectId}`)
   redirect(`/projects/${projectId}/tasks/${task.id}`)
 }
 
-export async function updateTask(taskId: string, projectId: string, formData: FormData) {
+export async function updateTask(taskId: string, projectId: string, state: ActionState, formData: FormData): Promise<ActionState> {
+  const parsed = TaskSchema.safeParse({
+    projectId,
+    title: formData.get('title'),
+    description: formData.get('description'),
+    status: formData.get('status'),
+    priority: formData.get('priority'),
+    dueDate: formData.get('dueDate'),
+  })
+
+  if (!parsed.success) {
+    return { errors: parsed.error.flatten().fieldErrors }
+  }
+
+  const { title, description, status, priority, dueDate } = parsed.data
   await db.task.update({
     where: { id: taskId },
     data: {
-      title: formData.get('title') as string,
-      description: formData.get('description') as string,
-      status: formData.get('status') as string,
-      priority: formData.get('priority') as string,
-      dueDate: formData.get('dueDate') ? new Date(formData.get('dueDate') as string) : null,
+      title,
+      description,
+      status,
+      priority,
+      dueDate: dueDate ? new Date(dueDate) : null,
     },
   })
   revalidatePath(`/projects/${projectId}/tasks/${taskId}`)
   revalidatePath(`/projects/${projectId}`)
+  return { success: true }
 }
 
 export async function deleteTask(taskId: string, projectId: string) {
@@ -103,15 +142,23 @@ export async function removeAssignee(taskId: string, userId: string, projectId: 
   revalidatePath(`/projects/${projectId}/tasks/${taskId}`)
 }
 
-export async function addComment(formData: FormData) {
-  const taskId = formData.get('taskId') as string
-  const userId = formData.get('userId') as string
-  const body = formData.get('body') as string
-  const parentId = (formData.get('parentId') as string) || null
-  const projectId = formData.get('projectId') as string
+export async function addComment(state: ActionState, formData: FormData): Promise<ActionState> {
+  const parsed = CommentSchema.safeParse({
+    taskId: formData.get('taskId'),
+    projectId: formData.get('projectId'),
+    userId: formData.get('userId'),
+    body: formData.get('body'),
+    parentId: formData.get('parentId'),
+  })
 
-  await db.comment.create({ data: { taskId, userId, body, parentId } })
+  if (!parsed.success) {
+    return { errors: parsed.error.flatten().fieldErrors }
+  }
+
+  const { taskId, userId, body, parentId, projectId } = parsed.data
+  await db.comment.create({ data: { taskId, userId, body, parentId: parentId || null } })
   revalidatePath(`/projects/${projectId}/tasks/${taskId}`)
+  return { success: true }
 }
 
 export async function deleteComment(commentId: string, taskId: string, projectId: string) {
